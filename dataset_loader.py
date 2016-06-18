@@ -45,14 +45,14 @@ class dataset_loader:
 
         "Separate training and test set"
         training_indexes,test_indexes = self._get_training_and_test_indexes(labels)
-        print len(self.training_set),len(self.training_labels),len(self.test_set),len(self.test_labels)
+        # print len(self.training_set),len(self.training_labels),len(self.test_set),len(self.test_labels)
         for ii in training_indexes:
             self.training_set.append(fixed_data[ii])
             self.training_labels.append(labels[ii])
         for ii in test_indexes:
             self.test_set.append(fixed_data[ii])
             self.test_labels.append(labels[ii])
-        print len(self.training_set),len(self.training_labels),len(self.test_set),len(self.test_labels)
+        # print len(self.training_set),len(self.training_labels),len(self.test_set),len(self.test_labels)
         # print [(labels[i],", prev size: ",len(files[i])," fixed size:",len(fixed_data[i])) for i in range(len(files))]
 
         # _, (b,c) = pyplot.subplots(2)
@@ -136,7 +136,7 @@ class dataset_loader:
                 remove_distance = size//residue
                 new_points[ii].remove(remove_distance-1)
             elif(size<1):
-                "This signature sucks"
+                "Null signature"
                 Exception("Signature without data")
             else:
                 "We need to add some points"
@@ -160,8 +160,8 @@ class dataset_loader:
     def _get_training_and_test_indexes(self,labels,test_share=0.3):
         train_indexes = range(int(floor(test_share*len(labels))))
         test_indexes = range(int(ceil(test_share*len(labels))-1),len(labels))
-        print train_indexes
-        print test_indexes
+        # print train_indexes
+        # print test_indexes
         return test_indexes,train_indexes
 
     def _labels_to_hot(self,labels_dict):

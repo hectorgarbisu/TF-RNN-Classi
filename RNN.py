@@ -18,7 +18,7 @@ class RNN:
             'hidden': tf.Variable(tf.random_normal([hidden_size])),
             'out': tf.Variable(tf.random_normal([output_size]))
         }
-        s.y_ = tf.nn.softmax(s.feed_rnn_cell(s.x, s.istate, s.weights, s.biases))
+        s.y_ = tf.nn.softmax(tf.sigmoid(s.feed_rnn_cell(s.x, s.istate, s.weights, s.biases)))
         s.error_measure = tf.reduce_mean(tf.pow(s.y_ - s.y, 2))
         s.train = tf.train.GradientDescentOptimizer(learning_rate=alpha).minimize(s.error_measure)
         s.init = tf.initialize_all_variables()
