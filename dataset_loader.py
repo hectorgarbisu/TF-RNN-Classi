@@ -39,6 +39,8 @@ class dataset_loader:
         files,labels,sizes = self._get_files(file_list,class_cardinalities)
         print "files: ",len(files)," labels: ",labels," sizes: ",sizes
         "Fix every sample to (fixed_sig_size)"
+        "TODO: center around first point"
+        "TODO: adjust over signature size, not canvas size"
         fixed_data = self._interpolate_points(files,sizes,fixed_sig_size)
         self.labels_to_hot = self._labels_to_hot(class_cardinalities)
         self.class_cardinalities = class_cardinalities

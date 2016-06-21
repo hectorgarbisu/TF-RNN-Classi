@@ -4,12 +4,12 @@ import numpy as np
 from dataset_loader import dataset_loader
 
 dataset_path = "./dataset/"
-num_epochs = 20000
+num_epochs = 2000
 # dataset_lenght = 100
 sample_size = 100
 alpha = 0.01
-nW_hidden = 20
-batch_size = 4
+nW_hidden = 600
+batch_size = 40
 num_steps = 5
 input_size = 2*(sample_size-num_steps)
 dl = dataset_loader(dataset_path)
