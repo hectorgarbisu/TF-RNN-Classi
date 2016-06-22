@@ -25,7 +25,7 @@ class dataset_loader:
     "it will be ignored. Program will also avoid reading over (max_per_label) samples" \
     "of a given class"
     "Each data sample will be adjusted to have exactly (fixed_sig_size) points"
-    def load(self, min_per_label=20, max_per_label=40, fixed_sig_size=100):
+    def load(self, min_per_label=100, max_per_label=140, fixed_sig_size=100):
         file_list = listdir(self.path)
         "get list of available class names"
         class_cardinalities = self._get_labels(file_list)
@@ -39,10 +39,11 @@ class dataset_loader:
         "get files, its labels, and its sizes"
         files,labels,sizes = self._get_files(file_list,class_cardinalities)
         print "files: ",len(files)," labels: ",labels," sizes: ",sizes
-        "TODO: center around first point"
+        "center around first point"
         centered_sigs = self._center(files)
-        "TODO: adjust over signature size, not canvas size"
+        "adjust over signature size, not canvas size"
         resized_centered_sigs = self._resize(centered_sigs)
+        # resized_centered_sigs = files
         "Fix every sample to (fixed_sig_length)"
         fixed_data = self._interpolate_points(resized_centered_sigs,sizes,fixed_sig_size)
         self.labels_to_hot = self._labels_to_hot(class_cardinalities)
@@ -99,7 +100,6 @@ class dataset_loader:
     def _get_files(self,file_list,labels_dict):
         """ Return a vector of "files", a vector with its labels and a vector of sizes """
         shuffle(file_list)
-        i = 0
         files,labels,sizes = [[],[],[]]
         for filename in file_list:
             label = self._label_from_filename(filename)
@@ -107,12 +107,12 @@ class dataset_loader:
                 " open and read the file " \
                 " must check that label belongs in labels_dict"
                 sample_points, period, size = self._read_points(filename)
-                files.append(sample_points)
-                " label is inserted as is "
-                labels.append(label)
-                " after opening the file, see how many points it contains"
-                sizes.append(size)
-                i += 1
+                if(size>10):
+                    files.append(sample_points)
+                    " label is inserted as is "
+                    labels.append(label)
+                    " after opening the file, see how many points it contains"
+                    sizes.append(size)
         return files,labels,sizes
 
     def _read_points(self,filename):
@@ -137,7 +137,7 @@ class dataset_loader:
             centered_irregular_signatures.append(
                 [(xx-x0,yy-y0) for (xx,yy) in irregular_signature]
             )
-        print centered_irregular_signatures
+        # print centered_irregular_signatures
         return centered_irregular_signatures
 
     def _resize(self,irregular_centered_signatures, preserve_aspect_ratio = True):
