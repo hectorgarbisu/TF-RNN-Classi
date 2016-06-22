@@ -3,6 +3,7 @@ from os import listdir
 from random import shuffle
 from copy import deepcopy
 from math import floor,ceil
+from matplotlib import pyplot
 import numpy as np
 
 
@@ -38,10 +39,12 @@ class dataset_loader:
         "get files, its labels, and its sizes"
         files,labels,sizes = self._get_files(file_list,class_cardinalities)
         print "files: ",len(files)," labels: ",labels," sizes: ",sizes
-        "Fix every sample to (fixed_sig_size)"
         "TODO: center around first point"
+        centered_sigs = self._center(files)
         "TODO: adjust over signature size, not canvas size"
-        fixed_data = self._interpolate_points(files,sizes,fixed_sig_size)
+        resized_centered_sigs = self._resize(centered_sigs)
+        "Fix every sample to (fixed_sig_length)"
+        fixed_data = self._interpolate_points(resized_centered_sigs,sizes,fixed_sig_size)
         self.labels_to_hot = self._labels_to_hot(class_cardinalities)
         self.class_cardinalities = class_cardinalities
 
@@ -57,11 +60,11 @@ class dataset_loader:
         # print len(self.training_set),len(self.training_labels),len(self.test_set),len(self.test_labels)
         # print [(labels[i],", prev size: ",len(files[i])," fixed size:",len(fixed_data[i])) for i in range(len(files))]
 
-        # _, (b,c) = pyplot.subplots(2)
-        # b.plot([p[0] for p in files[4]],[p[1] for p in files[4]],'.')
-        # c.plot([p[0] for p in fixed_data[4]],[p[1] for p in fixed_data[4]],'.')
-        # # c.plot(fixed_data[4][::][0],fixed_data[4][::][1])
-        # pyplot.show()
+        _, (b,c) = pyplot.subplots(2)
+        b.plot([p[0] for p in files[4]],[p[1] for p in files[4]],'.')
+        c.plot([p[0] for p in fixed_data[4]],[p[1] for p in fixed_data[4]],'.')
+        # c.plot(fixed_data[4][::][0],fixed_data[4][::][1])
+        pyplot.show()
 
     def _get_labels(self,filelist):
         labels_dict = dict()
@@ -126,6 +129,36 @@ class dataset_loader:
         f.close()
         return data,period,dataset_length
 
+    def _center(self, irregular_signatures):
+        centered_irregular_signatures = []
+        for irregular_signature in irregular_signatures:
+            x0 = irregular_signature[0][0]
+            y0 = irregular_signature[0][1]
+            centered_irregular_signatures.append(
+                [(xx-x0,yy-y0) for (xx,yy) in irregular_signature]
+            )
+        print centered_irregular_signatures
+        return centered_irregular_signatures
+
+    def _resize(self,irregular_centered_signatures, preserve_aspect_ratio = True):
+        resized_centered_signatures = []
+        a0 = 0.000001 # almost_zero : monstrous thing to prevent divisions by 0
+        for i_c_s in irregular_centered_signatures:
+            xmax = max([xy[0]+a0 for xy in i_c_s])
+            ymax = max([xy[1]+a0 for xy in i_c_s])
+            xmin = min([xy[0]-a0 for xy in i_c_s])
+            ymin = min([xy[1]-a0 for xy in i_c_s])
+            "Fitting is made so the first point keeps at 0,0"
+            xsf = min(-1/xmin,1/xmax) # x_scalation_factor
+            ysf = min(-1/ymin,1/ymax) # y_scalation_factor
+            if preserve_aspect_ratio:
+                xsf = ysf = min(xsf,ysf)
+            resized_centered_signatures.append(
+                [(xx*xsf,yy*ysf) for (xx,yy) in i_c_s]
+            )
+        return resized_centered_signatures
+
+
     def _interpolate_points(self,data_samples,sizes,number_of_points):
         new_points = deepcopy(data_samples)
         for ii in range(len(sizes)):
@@ -146,6 +179,7 @@ class dataset_loader:
                 "until size=number_of_points"
                 current_size = size
                 jj = 0
+                """ Return test set and its labels """
                 while(current_size<number_of_points):
                     # print "jj: ",jj," ii: ", ii," number_of_points: ",number_of_points, " current_size: ",current_size
                     new_point = self._middle_point(new_points[ii][jj],new_points[ii][jj+1])
@@ -212,6 +246,6 @@ class dataset_loader:
     def get_labels_to_hot_dict(self):
         return self.labels_to_hot
 
-    """ Return test set and its labels """
+
     def get_test_set(self):
         return zip(self.test_set,self.test_labels)
