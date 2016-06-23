@@ -9,7 +9,7 @@ class RNN:
         s.hidden_size = hidden_size
         s.x = tf.placeholder("float", [None, num_steps, input_size], name="input_placeholder_x")
         s.istate = tf.placeholder("float", [None, 2*hidden_size], name="cell_estate")
-        s.y = tf.placeholder("float", [None, output_size], name="input_placeholder_y")
+        s.y_ = tf.placeholder("float", [None, output_size], name="input_placeholder_y")
         s.weights = {
             'hidden': tf.Variable(tf.random_normal([input_size, hidden_size])),  # Hidden layer weights
             'out': tf.Variable(tf.random_normal([hidden_size, output_size]))
@@ -18,9 +18,11 @@ class RNN:
             'hidden': tf.Variable(tf.random_normal([hidden_size])),
             'out': tf.Variable(tf.random_normal([output_size]))
         }
-        s.y_ = tf.nn.softmax(tf.sigmoid(s.feed_rnn_cell(s.x, s.istate, s.weights, s.biases)))
-        s.error_measure = tf.reduce_mean(tf.pow(s.y_ - s.y, 2))
-        # s.error_measure = tf.reduce_mean(-tf.reduce_sum(s.y_ * tf.log(s.y)))
+        s.ylogits = s.feed_rnn_cell(s.x, s.istate, s.weights, s.biases)
+        s.y = tf.nn.softmax(s.ylogits)
+        # s.error_measure = tf.reduce_mean(tf.pow(s.y_ - s.y, 2))
+        # s.error_measure = tf.reduce_mean(tf.reduce_mean(-s.y_ * tf.log(s.y)))
+        s.error_measure = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(s.ylogits, s.y_))
         s.train = tf.train.GradientDescentOptimizer(learning_rate=alpha).minimize(s.error_measure)
         s.init = tf.initialize_all_variables()
         s.sess = tf.Session()
@@ -56,7 +58,7 @@ class RNN:
                 for jj in range(s.input_size):
                     whole_batch[ii,hh,jj] = batch[ii][jj+hh]
         #print whole_batch.shape
-        return s.sess.run(s.train, feed_dict={s.x: whole_batch, s.y: expected_outputs, s.istate: np.zeros((len(expected_outputs), 2*s.hidden_size))})
+        return s.sess.run(s.train, feed_dict={s.x: whole_batch, s.y_: expected_outputs, s.istate: np.zeros((len(expected_outputs), 2*s.hidden_size))})
 
     def error(s,batch,expected_outputs):
         whole_batch = np.zeros([len(batch),s.num_steps,s.input_size])
@@ -64,8 +66,7 @@ class RNN:
             for hh in range(s.num_steps):
                 for jj in range(s.input_size):
                     whole_batch[ii,hh,jj] = batch[ii][jj+hh]
-        #print whole_batch.shape
-        return s.sess.run(s.error_measure, feed_dict={s.x: whole_batch, s.y: expected_outputs, s.istate: np.zeros((len(expected_outputs), 2*s.hidden_size))})
+        return s.sess.run(s.error_measure, feed_dict={s.x: whole_batch, s.y_: expected_outputs, s.istate: np.zeros((len(expected_outputs), 2*s.hidden_size))})
 
 
     def categorize(s, data):
@@ -74,4 +75,4 @@ class RNN:
             for jj in range(s.input_size):
                 unroled_sample[0,hh,jj] = data[jj+hh]
         #print whole_batch.shape
-        return s.sess.run(s.y_, feed_dict={s.x: unroled_sample, s.istate: np.zeros([1,2*s.hidden_size])})
+        return s.sess.run(s.y, feed_dict={s.x: unroled_sample, s.istate: np.zeros([1,2*s.hidden_size])})

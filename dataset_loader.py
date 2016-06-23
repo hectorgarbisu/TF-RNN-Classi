@@ -62,10 +62,10 @@ class dataset_loader:
         # print [(labels[i],", prev size: ",len(files[i])," fixed size:",len(fixed_data[i])) for i in range(len(files))]
 
         _, (b,c) = pyplot.subplots(2)
-        b.plot([p[0] for p in files[4]],[p[1] for p in files[4]],'.')
-        c.plot([p[0] for p in fixed_data[4]],[p[1] for p in fixed_data[4]],'.')
-        # c.plot(fixed_data[4][::][0],fixed_data[4][::][1])
-        pyplot.show()
+        # b.plot([p[0] for p in files[4]],[p[1] for p in files[4]],'.')
+        # c.plot([p[0] for p in fixed_data[4]],[p[1] for p in fixed_data[4]],'.')
+        # # c.plot(fixed_data[4][::][0],fixed_data[4][::][1])
+        # pyplot.show()
 
     def _get_labels(self,filelist):
         labels_dict = dict()
